@@ -19,6 +19,7 @@
      * @param {String} response - The unparsed JSON response from get.
      */
     function addSearchHeader(response) {
+        console.log('=>', response);
         try {
             response = JSON.parse(response).query;  // you'll be moving this line out of here in the next quiz!
         } catch (e) {
@@ -33,30 +34,18 @@
      * @return {Promise}    - A Promise that resolves when the XHR succeeds and fails otherwise.
      */
     function get(url) {
-        /*
-         This code needs to get wrapped in a Promise!
-         */
-        return new Promise(function(resolve, reject) {
-            var req = new XMLHttpRequest();
-            req.open('GET', url);
-            req.onload = function() {
-                if (req.status === 200) {
-                    // It worked!
-                    // You'll want to resolve with the data from req.response
-                    resolve(req.response);
-                } else {
-                    // It failed :(
-                    // Be nice and reject with req.statusText
-                    reject(Error(req.statusText));
-                }
-            };
-            req.onerror = function() {
-                // It failed :(
-                // Pass a 'Network Error' to reject
-                reject(Error('Network Error'));
-            };
-            req.send();
-        });
+        return fetch(url);
+    }
+
+    /**
+     *
+     * @param {String} url - URL to fetch
+     * @returns {Promise}  - A Promise that resolves when the fetch succeeds and fails otherwise.
+     */
+    function getJSON(url) {
+        return get(url).then(function(response) {
+            return response.json();
+        })
     }
 
     window.addEventListener('WebComponentsReady', function() {
@@ -66,13 +55,18 @@
          You'll need to add a .then and a .catch. Pass the response to addSearchHeader on resolve or
          pass 'unknown' to addSearchHeader if it rejects.
          */
-        get('../data/earth-like-results.json')
-            .then(function(response){
-                addSearchHeader(response);
+        getJSON('../data/earth-like-results.json')
+            .then(function(response) {
+                addSearchHeader(response.query);
+                console.log(response);
+                return response.results[0];
             })
-            .catch(function(error){
-                console.log(error);
+            .then(function(url) {
+                console.log(url);
+            })
+            .catch(function(error) {
                 addSearchHeader('unknown');
+                console.log(error);
             });
     });
 })(document);
